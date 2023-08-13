@@ -7,4 +7,6 @@ services:
     init: true
     volumes:
       - ..:/workspace:cached
+      - $HOME/.config/gh/hosts.yml:/home/me/.config/gh/hosts.yml
+      - $HOME/.config/gh/config.yml:/home/me/.config/gh/config.yml
     command: sleep infinity
