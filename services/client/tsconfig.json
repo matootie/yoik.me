@@ -1,0 +1,19 @@
+{
+  "extends": "@yme/tsconfig/vite.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "#app": ["src/app"],
+      "#apis/*": ["src/apis/*"],
+      "#styles": ["src/styles.css"],
+      "#assets/*": ["src/assets/*"],
+      "#components/*": ["src/components/*"],
+      "#pages/*": ["src/pages/*"],
+      "#utils/*": ["src/utils/*"],
+      "#providers/*": ["src/providers/*"]
+    }
+  },
+  "include": ["src"]
+}

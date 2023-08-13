@@ -1,0 +1,26 @@
+{
+  "name": "Yoik.ME",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "prettier.configPath": "config/.prettierrc.json"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "skyapps.fish-vscode",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "csstools.postcss"
+      ]
+    }
+  },
+  "postCreateCommand": "yarn",
+  "remoteUser": "me",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
+  }
+}
