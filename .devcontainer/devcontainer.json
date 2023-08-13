@@ -1,5 +1,5 @@
 {
-  "name": "Yoik.ME",
+  "name": "yoik.me",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
