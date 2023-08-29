@@ -2,14 +2,15 @@
  * List of posts.
  */
 
+// External imports.
+import { useRef } from "react"
+
 // Component imports.
 import { LoadingSpinner } from "#components/loading-spinner"
 import { PostItem, PostItemLoading } from "./post-item"
 
 // Utility imports.
-import { ListPostsPost } from "#utils/data"
-import { useListenPosts, usePosts } from "#utils/queries"
-import { useEffect, useRef } from "react"
+import { usePosts } from "#utils/queries"
 
 /**
  * List of posts component.
@@ -26,33 +27,7 @@ export function PostsList({ className = "" }: PostListProps) {
     hasNextPage,
     fetchNextPage,
   } = usePosts()
-  const { data: realtime } = useListenPosts()
   const scrollBoxRef = useRef<HTMLDivElement>(null)
-
-  /**
-   * Function to handle key presses for navigation.
-   */
-  function handleKeyDown(key: string) {
-    const scrollSensitivity = 100
-    const ref = scrollBoxRef.current
-    if (!ref) return
-    if (key === "k") {
-      ref.scroll({
-        top: ref.scrollTop - scrollSensitivity,
-        behavior: "smooth",
-      })
-    } else if (key === "j") {
-      ref.scroll({
-        top: ref.scrollTop + scrollSensitivity,
-        behavior: "smooth",
-      })
-    }
-  }
-
-  // Automatically focus the scrollable box.
-  useEffect(() => {
-    scrollBoxRef.current?.focus()
-  }, [])
 
   /**
    * Function to handle scrolling for infinite page loading.
@@ -68,19 +43,6 @@ export function PostsList({ className = "" }: PostListProps) {
     }
   }
 
-  // Strip duplcates (react-query not behaving well with realtime fetch from
-  // firebase)
-  // TODO: Workshopping a better implementation where realtime data will be
-  // automatically added to the query data, but this is functional for now.
-  const items = [...realtime, ...data].reduce((prev, curr) => {
-    for (const x of prev) {
-      if (x.postId === curr.postId) {
-        return prev
-      }
-    }
-    return [...prev, curr]
-  }, [] as ListPostsPost[])
-
   // Return JSX.
   return (
     <div
@@ -88,12 +50,11 @@ export function PostsList({ className = "" }: PostListProps) {
       ref={scrollBoxRef}
       onScroll={() => handleScroll()}
       tabIndex={0}
-      onKeyDown={(e) => handleKeyDown(e.key)}
     >
       <ul className="space-y-4 py-4 px-2">
         {isLoading
           ? [1, 2, 3].map((x) => <PostItemLoading key={x} />)
-          : items.map((item) => (
+          : data.map((item) => (
               <PostItem
                 key={item.postId}
                 authorId={item.author.uid}

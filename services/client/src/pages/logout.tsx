@@ -5,7 +5,6 @@
 // External imports.
 import { useEffect } from "react"
 import { Navigate, useLocation, useNavigate } from "react-router-dom"
-import { useQueryClient } from "react-query"
 
 // Component imports.
 import { LoadingSpinner } from "#components/loading-spinner"
@@ -21,7 +20,6 @@ export function LogoutPage() {
   const auth = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   // Determine where to redirect if already logged out.
   const { from } = location.state || { from: { pathname: "/" } }
@@ -29,7 +27,6 @@ export function LogoutPage() {
   // Wrapper function to log out and redirect.
   function logout() {
     auth.logout(() => {
-      queryClient.refetchQueries(["posts"])
       navigate("/", { replace: true })
     })
   }

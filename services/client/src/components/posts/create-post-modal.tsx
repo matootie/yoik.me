@@ -3,14 +3,7 @@
  */
 
 // External imports.
-import {
-  Fragment,
-  ReactNode,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react"
+import { Fragment, ReactNode, useLayoutEffect, useRef, useState } from "react"
 import { Dialog, Transition } from "@headlessui/react"
 import { XMarkIcon } from "@heroicons/react/24/outline"
 
@@ -39,7 +32,6 @@ export function CreatePostModal({
   const [open, setOpen] = useState<boolean>(false)
   const htmlRef = useRef<HTMLTextAreaElement>(null)
   const [value, setValue] = useState<string>("")
-
   const { create, isLoading } = useCreatePost()
 
   useLayoutEffect(() => {
@@ -47,19 +39,6 @@ export function CreatePostModal({
     htmlRef.current.style.height = "inherit"
     htmlRef.current.style.height = `${htmlRef.current.scrollHeight}px`
   }, [value])
-
-  function handleKeyDown(e: KeyboardEvent) {
-    if (!open && e.key === "n") {
-      setOpen(true)
-    }
-  }
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown)
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [])
 
   function handleClose() {
     setOpen(false)
@@ -148,12 +127,27 @@ export function CreatePostModal({
                   </div>
 
                   <div className="mt-4 flex justify-end items-center">
-                    {isLoading && (
-                      <LoadingSpinner
-                        size="sm"
-                        className="mr-4 py-0"
-                      />
+                    {!isLoading && (
+                      <span
+                        className={`block mr-auto text-xs select-none hover:cursor-default ${
+                          value.length >= 240
+                            ? "text-red-600"
+                            : value.length >= 220
+                            ? "text-orange-600"
+                            : value.length >= 200
+                            ? "text-yellow-700"
+                            : "text-transparent"
+                        }`}
+                      >
+                        {value.length}
+                      </span>
                     )}
+                    <LoadingSpinner
+                      size="sm"
+                      className={`mr-4 py-0 ${
+                        isLoading ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
                     <button
                       type="submit"
                       className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white disabled:grayscale disabled:text-stone-300 disabled:animate-pulse"

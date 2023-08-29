@@ -14,9 +14,10 @@ import {
   listPosts,
   listenPosts,
   createPost,
+  ListPostsOutput,
 } from "#utils/data"
 import { useUser } from "#utils/auth"
-import { useInfiniteQuery } from "react-query"
+import { InfiniteData, useInfiniteQuery, useQueryClient } from "react-query"
 
 /**
  * Hook to handle creating a post.
@@ -67,16 +68,42 @@ export function usePost({ postId }: UsePostOptions) {
  * Hook to use a list of posts with pagination.
  */
 export function usePosts() {
+  const queryClient = useQueryClient()
+
   const details = useInfiniteQuery({
     queryKey: ["posts"],
     queryFn: async ({ pageParam }) => {
       return await listPosts({ limit: 10, cursor: pageParam })
     },
     getNextPageParam: (lastPage) => lastPage.cursor,
-    staleTime: Infinity,
   })
+
+  useListenPosts({
+    onNewData: (data) => {
+      // @ts-ignore
+      queryClient.setQueryData(["posts"], (existing) => {
+        // @ts-ignore
+        const x: InfiniteData<ListPostsOutput> = existing
+        const b = x.pages.map((page, index) => {
+          if (index === 0) {
+            return {
+              items: [data, ...page.items],
+              cursor: page.cursor,
+            }
+          }
+          return page
+        })
+        return {
+          pages: b,
+          pageParams: x.pageParams,
+        }
+      })
+    },
+  })
+
   if (details.data) {
     // Reformat data before returning.
+    console.log(details.data)
     const data: ListPostsPost[] = []
     for (const page of details.data.pages) {
       data.push(...page.items)
@@ -95,15 +122,16 @@ export function usePosts() {
 /**
  * Hook to listen for incoming posts from Firebase.
  */
-export function useListenPosts() {
-  const [data, setData] = useState<ListenPostsPost[]>([])
-
+interface UseListenPostsOptions {
+  onData?: (data: ListenPostsPost[]) => void
+  onNewData?: (data: ListenPostsPost) => void
+}
+export function useListenPosts({ onData, onNewData }: UseListenPostsOptions) {
   useEffect(() => {
     const { unsubscribe } = listenPosts({
-      onData: setData,
+      onData,
+      onNewData,
     })
     return unsubscribe
   }, [])
-
-  return { data }
 }

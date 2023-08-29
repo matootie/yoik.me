@@ -166,12 +166,16 @@ export interface ListenPostsPost {
   }
 }
 export interface ListenPostsInput {
-  onData: (data: ListenPostsPost[]) => void
+  onData?: (data: ListenPostsPost[]) => void
+  onNewData?: (data: ListenPostsPost) => void
 }
 export interface ListenPostsOutput {
   unsubscribe: Unsubscribe
 }
-export function listenPosts({ onData }: ListenPostsInput): ListenPostsOutput {
+export function listenPosts({
+  onData,
+  onNewData,
+}: ListenPostsInput): ListenPostsOutput {
   const db = getFirestore()
   const q = query(
     collection(db, "posts"),
@@ -179,23 +183,42 @@ export function listenPosts({ onData }: ListenPostsInput): ListenPostsOutput {
     orderBy("published", "desc")
   )
   const unsubscribe = onSnapshot(q, (qs) => {
-    // Parse the new data.
-    const items: ListenPostsPost[] = []
-    qs.forEach((item) => {
-      const data = item.data()
-      items.push({
-        postId: item.id,
-        body: data.body,
-        published: data.published.toDate(),
-        author: {
-          uid: data.author,
-          color: getColor(data.author),
-          username: getName(data.author),
-        },
+    if (onNewData !== undefined) {
+      qs.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data()
+          const item = {
+            postId: change.doc.id,
+            body: data.body,
+            published: data.published.toDate(),
+            author: {
+              uid: data.author,
+              color: getColor(data.author),
+              username: getName(data.author),
+            },
+          }
+          onNewData(item)
+        }
       })
-    })
-    // Run the callback function with new data.
-    onData(items)
+    }
+    if (onData !== undefined) {
+      const items: ListenPostsPost[] = []
+      qs.forEach((item) => {
+        const data = item.data()
+        items.push({
+          postId: item.id,
+          body: data.body,
+          published: data.published.toDate(),
+          author: {
+            uid: data.author,
+            color: getColor(data.author),
+            username: getName(data.author),
+          },
+        })
+      })
+      // Run the callback function with new data.
+      onData(items)
+    }
   })
   // Return the unsubscribe function.
   return { unsubscribe }
