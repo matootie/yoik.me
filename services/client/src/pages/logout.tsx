@@ -4,31 +4,42 @@
 
 // External imports.
 import { useEffect } from "react"
-import { useNavigate, useLocation, Navigate } from "react-router-dom"
+import { Navigate, useLocation, useNavigate } from "react-router-dom"
+import { useQueryClient } from "react-query"
 
-// Local imports
+// Component imports.
+import { LoadingSpinner } from "#components/loading-spinner"
+
+// Utility imports.
 import { useAuth } from "#utils/auth"
 
 /**
  * Logout page component.
  */
 export function LogoutPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
+  // Use hooks.
   const auth = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
+  // Determine where to redirect if already logged out.
   const { from } = location.state || { from: { pathname: "/" } }
 
+  // Wrapper function to log out and redirect.
   function logout() {
     auth.logout(() => {
+      queryClient.refetchQueries(["posts"])
       navigate("/", { replace: true })
     })
   }
 
+  // Start logging out immediately on component load.
   useEffect(() => {
     logout()
   }, [])
 
+  // If user data is not present, redirect back.
   if (!auth.user) {
     return (
       <Navigate
@@ -38,9 +49,12 @@ export function LogoutPage() {
     )
   }
 
-  if (auth.loading) {
-    return <h3>Loading...</h3>
-  }
-
-  return <h3>Logging out...</h3>
+  // Show a temporary "logging out" view.
+  // Currently just a spinner but also logging out is so fast there is no point in making this view more fun.
+  return (
+    <LoadingSpinner
+      className="h-screen w-screen"
+      size="lg"
+    />
+  )
 }

@@ -12,7 +12,10 @@ import {
 } from "react"
 import { Navigate, redirect, useLocation } from "react-router-dom"
 
-// Local imports.
+// Component imports.
+import { LoadingSpinner } from "#components/loading-spinner"
+
+// Utility imports.
 import {
   FirebaseUser,
   browserSessionPersistence,
@@ -27,8 +30,10 @@ import { getColor, getName } from "#utils/id"
 /**
  * Hook to retrieve the current auth state.
  *
- * Use this in pages and components where the user may or may not be logged in
- * or where you need to access login/logout functionality.
+ * Use this in pages and components where you need to access login/logout
+ * functionality.
+ * In most cases, just redirect to /login or /logout instead. Or, even better,
+ * use the LoginButton and LogoutButton components.
  */
 export function useAuth() {
   return useContext(AuthContext)
@@ -37,19 +42,43 @@ export function useAuth() {
 /**
  * Hook to retrieve the currently logged in user.
  *
- * Use this only in pages and components where the the user is guaranteed to be
- * logged in, for example in a page wrapped with the RequireAuth component.
+ * Can conveniently be used to automatically redirect the user to login if there is no auth, in that way the user is either always available or the auth state is loading.
  */
-export function useUser(required: true): User
-export function useUser(required: false): User | undefined
-export function useUser(): User | undefined
-export function useUser(required: boolean = false): User | undefined {
-  const { user } = useContext(AuthContext)
-  if (required && !user) {
-    redirect("/login")
-    return
+type UseUserOutput =
+  | {
+      user: undefined
+      isLoading: true
+    }
+  | {
+      user: User
+      isLoading: false
+    }
+type UseUserNoUser = {
+  user: undefined
+  isLoading: false
+}
+export function useUser(required: true): UseUserOutput
+export function useUser(required: false): UseUserOutput | UseUserNoUser
+export function useUser(): UseUserOutput | UseUserNoUser
+export function useUser(
+  required: boolean = false
+): UseUserOutput | UseUserNoUser {
+  // Get the user and loading state from auth context.
+  const { user, loading } = useContext(AuthContext)
+  // If not loading and there is no user...
+  if (!loading && !user) {
+    // If we require the user, then redirect.
+    if (required) redirect("/login")
+    // Otherwise, return UseUserNoUser type.
+    return { user: undefined, isLoading: false }
   }
-  return user
+  // If there is no user but we are loading...
+  if (!user || loading) {
+    // Return that variation of UseUserOutput.
+    return { user: undefined, isLoading: true }
+  }
+  // Otherwise, return the user!
+  return { user, isLoading: false }
 }
 
 /**
@@ -64,6 +93,18 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const location = useLocation()
   // Get auth from context.
   const { user, loading, error } = useContext(AuthContext)
+
+  // Display full screen loading if loading.
+  // TODO: provide more control over loading view, no use for this now.
+  if (loading) {
+    return (
+      <LoadingSpinner
+        className="h-screen w-screen"
+        size="lg"
+      />
+    )
+  }
+
   // If the user doesn't exist, send them to login.
   if (!user) {
     return (
@@ -74,25 +115,25 @@ export function RequireAuth({ children }: RequireAuthProps) {
       />
     )
   }
-  // Display loading if loading.
-  if (loading) {
-    return <span>Loading...</span>
-  }
+
   // If the user exists, show the children.
   if (user) {
     return <>{children}</>
   }
+
   // Otherwise, show an error.
   return <span>{error || "An unknown error has occurred"}</span>
 }
 
 /** Lower level things */
 
+// Extended interface of Firebase User.
 interface User extends FirebaseUser {
   color: string
   username: string
 }
 
+// Interface representing auth state.
 interface AuthState {
   user?: User
   loading: boolean
@@ -101,17 +142,22 @@ interface AuthState {
   logout: (callback: CallableFunction) => Promise<void>
 }
 
+// Create an auth context.
 const AuthContext = createContext<AuthState>({
   loading: true,
   login: async () => {},
   logout: async () => {},
 })
 
+/**
+ * Hook to provide auth state.
+ */
 function useProvideAuth(): AuthState {
   const [user, setUser] = useState<User | undefined>()
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | undefined>()
 
+  // Listen for any changes with auth and update state accordingly.
   useEffect(() => {
     setLoading(true)
     setError(undefined)
@@ -132,6 +178,8 @@ function useProvideAuth(): AuthState {
     return unsubscribe
   }, [setUser])
 
+  // Function to handle logging in and updating auth state.
+  // Currently only anonymous logins are supported.
   const login = async (callback: CallableFunction) => {
     setLoading(true)
     setError(undefined)
@@ -152,6 +200,7 @@ function useProvideAuth(): AuthState {
     }
   }
 
+  // Function to handle logging out and updating auth state.
   const logout = async (callback: CallableFunction) => {
     setLoading(true)
     setError(undefined)
@@ -167,6 +216,7 @@ function useProvideAuth(): AuthState {
     }
   }
 
+  // Return the auth state.
   return {
     user,
     loading,
@@ -176,6 +226,9 @@ function useProvideAuth(): AuthState {
   }
 }
 
+/**
+ * Auth provider component.
+ */
 interface AuthProviderProps {
   children: ReactNode
 }

@@ -5,7 +5,7 @@
 // External imports.
 import { Route, Routes } from "react-router-dom"
 
-// Local imports.
+// Page imports.
 import { HomePage } from "#pages/home"
 import { LoginPage } from "#pages/login"
 import { LogoutPage } from "#pages/logout"

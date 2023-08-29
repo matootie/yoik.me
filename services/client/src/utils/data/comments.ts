@@ -15,7 +15,12 @@ import {
   limit,
   startAfter,
   serverTimestamp,
+  Unsubscribe,
+  where,
+  Timestamp,
+  onSnapshot,
 } from "#utils/firebase"
+import { getColor, getName } from "#utils/id"
 
 /**
  * Create a comment on a post.
@@ -55,7 +60,11 @@ export interface ListCommentsComment {
   postId: string
   body: string
   published: Date
-  author: string
+  author: {
+    uid: string
+    color: string
+    username: string
+  }
 }
 export interface ListCommentsOutput {
   items: ListCommentsComment[]
@@ -73,12 +82,14 @@ export async function listComments({
   const q = cursor
     ? query(
         collection(db, "posts", postId, "comments"),
+        where("published", "<", Timestamp.now()),
         orderBy("published", "desc"),
         limit(lim),
         startAfter(await getDoc(doc(db, "posts", postId, "comments", cursor)))
       )
     : query(
         collection(db, "posts", postId, "comments"),
+        where("published", "<", Timestamp.now()),
         orderBy("published", "desc"),
         limit(lim)
       )
@@ -92,7 +103,11 @@ export async function listComments({
       commentId: item.id,
       body: data.body,
       published: data.published.toDate(),
-      author: data.author,
+      author: {
+        uid: data.author,
+        color: getColor(data.author),
+        username: getName(data.author),
+      },
     })
   })
   // Return the data.
@@ -102,4 +117,56 @@ export async function listComments({
     items,
     cursor: lastItem,
   }
+}
+
+export interface ListenCommentsComment {
+  commentId: string
+  postId: string
+  body: string
+  published: Date
+  author: {
+    uid: string
+    color: string
+    username: string
+  }
+}
+export interface ListenCommentsInput {
+  postId: string
+  onData: (data: ListenCommentsComment[]) => void
+}
+export interface ListenCommentsOutput {
+  unsubscribe: Unsubscribe
+}
+export function listenComments({
+  postId,
+  onData,
+}: ListenCommentsInput): ListenCommentsOutput {
+  const db = getFirestore()
+  const q = query(
+    collection(db, "posts", postId, "comments"),
+    where("published", ">=", Timestamp.now()),
+    orderBy("published", "desc")
+  )
+  const unsubscribe = onSnapshot(q, (qs) => {
+    // Parse the new data.
+    const items: ListenCommentsComment[] = []
+    qs.forEach((item) => {
+      const data = item.data()
+      items.push({
+        postId,
+        commentId: item.id,
+        body: data.body,
+        published: data.published.toDate(),
+        author: {
+          uid: data.author,
+          color: getColor(data.author),
+          username: getName(data.author),
+        },
+      })
+    })
+    // Run the callback function with new data.
+    onData(items)
+  })
+  // Return the unsubscribe function.
+  return { unsubscribe }
 }

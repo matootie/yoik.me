@@ -1,8 +1,19 @@
+/**
+ * Vite configuration.
+ */
+
+// Standard imports.
 import { join } from "path"
+
+// External imports.
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
+// Plugin imports.
+import react from "@vitejs/plugin-react-swc"
 import paths from "vite-tsconfig-paths"
 
+/**
+ * Exported configuration.
+ */
 export default defineConfig({
   root: join(__dirname, "./src"),
   envDir: ".",
@@ -13,13 +24,6 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true,
-    // proxy: {
-    //   "/api": {
-    //     target: "http://localhost:3001",
-    //     changeOrigin: true,
-    //     rewrite: (path) => path.replace(/^\/api/, ""),
-    //   },
-    // },
   },
   build: {
     outDir: join(__dirname, "./dist"),

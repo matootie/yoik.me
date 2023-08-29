@@ -1,18 +1,22 @@
+/**
+ * Typescript configuration.
+ */
+
 {
+  // Extend existing configurations.
   "extends": "@yme/tsconfig/vite.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
     "baseUrl": ".",
+    // Path mappings for absolute imports.
     "paths": {
       "#app": ["src/app"],
-      "#apis/*": ["src/apis/*"],
-      "#styles": ["src/styles.css"],
+      "#styles": ["src/index.css"],
       "#assets/*": ["src/assets/*"],
       "#components/*": ["src/components/*"],
       "#pages/*": ["src/pages/*"],
-      "#utils/*": ["src/utils/*"],
-      "#providers/*": ["src/providers/*"]
+      "#utils/*": ["src/utils/*"]
     }
   },
   "include": ["src"]

@@ -37,7 +37,6 @@ export function getFirestore(): Firestore {
 /**
  * Re-exports from the Firebase SDK.
  */
-
 export type { User as FirebaseUser } from "firebase/auth"
 export {
   signInAnonymously,
@@ -46,6 +45,7 @@ export {
   onAuthStateChanged,
   browserSessionPersistence,
 } from "firebase/auth"
+export type { Unsubscribe } from "firebase/firestore"
 export {
   getDocs,
   getDoc,
@@ -60,4 +60,6 @@ export {
   startAfter,
   startAt,
   serverTimestamp,
+  onSnapshot,
+  Timestamp,
 } from "firebase/firestore"

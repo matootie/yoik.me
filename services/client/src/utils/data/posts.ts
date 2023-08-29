@@ -15,6 +15,10 @@ import {
   limit,
   startAfter,
   serverTimestamp,
+  where,
+  Unsubscribe,
+  onSnapshot,
+  Timestamp,
 } from "#utils/firebase"
 import { getColor, getName } from "#utils/id"
 
@@ -52,6 +56,7 @@ export interface GetPostPost {
   body: string
   published: Date
   author: {
+    uid: string
     color: string
     username: string
   }
@@ -74,6 +79,7 @@ export async function getPost({
       body: data.body,
       published: data.published.toDate(),
       author: {
+        uid: data.author,
         color: getColor(data.author),
         username: getName(data.author),
       },
@@ -93,6 +99,7 @@ export interface ListPostsPost {
   body: string
   published: Date
   author: {
+    uid: string
     color: string
     username: string
   }
@@ -112,11 +119,17 @@ export async function listPosts({
   const q = cursor
     ? query(
         collection(db, "posts"),
+        where("published", "<", Timestamp.now()),
         orderBy("published", "desc"),
         limit(lim),
         startAfter(await getDoc(doc(db, "posts", cursor)))
       )
-    : query(collection(db, "posts"), orderBy("published", "desc"), limit(lim))
+    : query(
+        collection(db, "posts"),
+        where("published", "<", Timestamp.now()),
+        orderBy("published", "desc"),
+        limit(lim)
+      )
   const qs = await getDocs(q)
   // Parse the response.
   const items: ListPostsPost[] = []
@@ -127,6 +140,7 @@ export async function listPosts({
       body: data.body,
       published: data.published.toDate(),
       author: {
+        uid: data.author,
         color: getColor(data.author),
         username: getName(data.author),
       },
@@ -139,4 +153,50 @@ export async function listPosts({
     items,
     cursor: lastItem,
   }
+}
+
+export interface ListenPostsPost {
+  postId: string
+  body: string
+  published: Date
+  author: {
+    uid: string
+    color: string
+    username: string
+  }
+}
+export interface ListenPostsInput {
+  onData: (data: ListenPostsPost[]) => void
+}
+export interface ListenPostsOutput {
+  unsubscribe: Unsubscribe
+}
+export function listenPosts({ onData }: ListenPostsInput): ListenPostsOutput {
+  const db = getFirestore()
+  const q = query(
+    collection(db, "posts"),
+    where("published", ">=", Timestamp.now()),
+    orderBy("published", "desc")
+  )
+  const unsubscribe = onSnapshot(q, (qs) => {
+    // Parse the new data.
+    const items: ListenPostsPost[] = []
+    qs.forEach((item) => {
+      const data = item.data()
+      items.push({
+        postId: item.id,
+        body: data.body,
+        published: data.published.toDate(),
+        author: {
+          uid: data.author,
+          color: getColor(data.author),
+          username: getName(data.author),
+        },
+      })
+    })
+    // Run the callback function with new data.
+    onData(items)
+  })
+  // Return the unsubscribe function.
+  return { unsubscribe }
 }

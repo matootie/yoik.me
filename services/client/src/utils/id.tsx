@@ -2,9 +2,13 @@
  * Identity utilities.
  */
 
-// Local imports.
-import adj from "#utils/adjectives.json"
-import nou from "#utils/nouns.json"
+// External imports.
+import { IconType } from "react-icons"
+
+// Asset imports.
+import adj from "#assets/adjectives.json"
+import nou from "#assets/nouns.json"
+import ico from "#assets/icons"
 
 /**
  * Convert an alpanumeric ID to a number.
@@ -43,4 +47,13 @@ export function getColor(id: string): string {
     ("0" + g.toString(16)).slice(-2) +
     ("0" + b.toString(16)).slice(-2)
   )
+}
+
+/**
+ * Get the generated user icon for a user ID.
+ */
+export function getIcon(id: string): IconType {
+  const x = idToNumber(id)
+  const Element = ico[x % ico.length]
+  return Element
 }
