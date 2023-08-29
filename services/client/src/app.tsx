@@ -4,6 +4,7 @@
 
 // External imports.
 import { Route, Routes } from "react-router-dom"
+import { Toaster } from "react-hot-toast"
 
 // Page imports.
 import { HomePage } from "#pages/home"
@@ -15,19 +16,22 @@ import { LogoutPage } from "#pages/logout"
  */
 export function App() {
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={<HomePage />}
-      />
-      <Route
-        path="/login"
-        element={<LoginPage />}
-      />
-      <Route
-        path="/logout"
-        element={<LogoutPage />}
-      />
-    </Routes>
+    <>
+      <Toaster position="top-left" />
+      <Routes>
+        <Route
+          path="/"
+          element={<HomePage />}
+        />
+        <Route
+          path="/login"
+          element={<LoginPage />}
+        />
+        <Route
+          path="/logout"
+          element={<LogoutPage />}
+        />
+      </Routes>
+    </>
   )
 }

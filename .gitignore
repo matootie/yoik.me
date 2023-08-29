@@ -1,3 +1,4 @@
+.DS_Store
 .cdk.staging
 cdk.out
 logs

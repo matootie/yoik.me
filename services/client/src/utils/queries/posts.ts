@@ -103,7 +103,6 @@ export function usePosts() {
 
   if (details.data) {
     // Reformat data before returning.
-    console.log(details.data)
     const data: ListPostsPost[] = []
     for (const page of details.data.pages) {
       data.push(...page.items)

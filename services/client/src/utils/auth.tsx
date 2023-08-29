@@ -18,7 +18,7 @@ import { LoadingSpinner } from "#components/loading-spinner"
 // Utility imports.
 import {
   FirebaseUser,
-  browserSessionPersistence,
+  browserLocalPersistence,
   getAuth,
   onAuthStateChanged,
   setPersistence,
@@ -185,7 +185,7 @@ function useProvideAuth(): AuthState {
     setError(undefined)
     const auth = getAuth()
     try {
-      setPersistence(auth, browserSessionPersistence)
+      setPersistence(auth, browserLocalPersistence)
       const { user } = await signInAnonymously(auth)
       setUser({
         ...user,

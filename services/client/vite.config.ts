@@ -18,7 +18,7 @@ export default defineConfig({
   root: join(__dirname, "./src"),
   envDir: ".",
   envPrefix: "CLIENT_",
-  publicDir: "public",
+  publicDir: join(__dirname, "./public"),
   clearScreen: false,
   logLevel: "info",
   server: {

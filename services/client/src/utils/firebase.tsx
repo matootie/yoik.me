@@ -44,6 +44,7 @@ export {
   setPersistence,
   onAuthStateChanged,
   browserSessionPersistence,
+  browserLocalPersistence,
 } from "firebase/auth"
 export type { Unsubscribe } from "firebase/firestore"
 export {
