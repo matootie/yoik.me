@@ -4,4 +4,4 @@ set -e
 
 . "$(dirname "$0")/_/husky.sh"
 
-yarn exec --offline -- commitlint --config config/commitlint.config.js --edit $1
+bunx commitlint --config config/commitlint.config.js --edit $1
