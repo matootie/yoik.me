@@ -17,7 +17,11 @@ import {
   ListPostsOutput,
 } from "#utils/data"
 import { useUser } from "#utils/auth"
-import { InfiniteData, useInfiniteQuery, useQueryClient } from "react-query"
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 /**
  * Hook to handle creating a post.
@@ -44,7 +48,7 @@ export function useCreatePost() {
 
 /**
  * Hook to handle getting a single post.
- * TODO: Replace functionality with react-query to leverage caching.
+ * TODO: Replace functionality with @tanstack/react-query to leverage caching.
  */
 interface UsePostOptions {
   postId: string
@@ -75,16 +79,17 @@ export function usePosts() {
     queryFn: async ({ pageParam }) => {
       return await listPosts({ limit: 10, cursor: pageParam })
     },
+    initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.cursor,
   })
 
   useListenPosts({
     onNewData: (data) => {
-      // @ts-ignore
-      queryClient.setQueryData(["posts"], (existing) => {
-        // @ts-ignore
-        const x: InfiniteData<ListPostsOutput> = existing
-        const b = x.pages.map((page, index) => {
+      queryClient.setQueryData<
+        InfiniteData<ListPostsOutput, string | undefined>
+      >(["posts"], (existing) => {
+        if (!existing) return existing
+        const pages = existing.pages.map((page, index) => {
           if (index === 0) {
             return {
               items: [data, ...page.items],
@@ -94,8 +99,8 @@ export function usePosts() {
           return page
         })
         return {
-          pages: b,
-          pageParams: x.pageParams,
+          pages,
+          pageParams: existing.pageParams,
         }
       })
     },

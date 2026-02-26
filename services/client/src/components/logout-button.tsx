@@ -3,9 +3,15 @@
  */
 
 // External imports.
-import { Fragment, ReactNode, useState } from "react"
+import { ReactNode, useState } from "react"
 import { Link } from "react-router-dom"
-import { Dialog, Transition } from "@headlessui/react"
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react"
 
 // Utility imports.
 import { useUser } from "#utils/auth"
@@ -35,15 +41,13 @@ export function LogoutButton({ children, className = "" }: LogoutButtonProps) {
       <Transition
         appear
         show={open}
-        as={Fragment}
       >
         <Dialog
           as="div"
           className="relative z-10"
           onClose={() => setOpen(false)}
         >
-          <Transition.Child
-            as={Fragment}
+          <TransitionChild
             enter="ease-out duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
@@ -51,13 +55,12 @@ export function LogoutButton({ children, className = "" }: LogoutButtonProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black bg-opacity-70" />
-          </Transition.Child>
+            <div className="fixed inset-0 bg-black/70" />
+          </TransitionChild>
 
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-6 text-center">
-              <Transition.Child
-                as={Fragment}
+              <TransitionChild
                 enter="ease-out duration-300"
                 enterFrom="opacity-0 scale-95"
                 enterTo="opacity-100 scale-100"
@@ -65,13 +68,13 @@ export function LogoutButton({ children, className = "" }: LogoutButtonProps) {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gray-50 p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
+                <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gray-50 p-6 text-left align-middle shadow-xl transition-all">
+                  <DialogTitle
                     as="h3"
                     className="text-lg font-medium leading-6"
                   >
                     Are you sure?
-                  </Dialog.Title>
+                  </DialogTitle>
 
                   <button
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 focus:ring rounded-md p-0.5"
@@ -102,8 +105,8 @@ export function LogoutButton({ children, className = "" }: LogoutButtonProps) {
                       I am sure, log me out!
                     </Link>
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
+                </DialogPanel>
+              </TransitionChild>
             </div>
           </div>
         </Dialog>

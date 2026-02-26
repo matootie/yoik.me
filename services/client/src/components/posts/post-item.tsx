@@ -3,7 +3,10 @@
  */
 
 // External imports.
-import moment from "moment"
+import dayjs from "dayjs"
+import relativeTime from "dayjs/plugin/relativeTime"
+
+dayjs.extend(relativeTime)
 import { Link } from "react-router-dom"
 
 // Utility imports.
@@ -56,7 +59,7 @@ export function PostItem({
       <p>{body}</p>
       <div className="flex justify-between text-sm text-gray-600 mt-1">
         <p style={{ color }}>{username}</p>
-        <p>{moment(published).fromNow()}</p>
+        <p>{dayjs(published).fromNow()}</p>
       </div>
       {clickable && (
         <Link

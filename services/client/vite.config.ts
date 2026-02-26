@@ -10,6 +10,7 @@ import { defineConfig } from "vite"
 // Plugin imports.
 import react from "@vitejs/plugin-react-swc"
 import paths from "vite-tsconfig-paths"
+import tailwindcss from "@tailwindcss/vite"
 
 /**
  * Exported configuration.
@@ -31,5 +32,5 @@ export default defineConfig({
     sourcemap: true,
     manifest: true,
   },
-  plugins: [react(), paths({ root: "../" })],
+  plugins: [react(), paths({ root: "../" }), tailwindcss()],
 })

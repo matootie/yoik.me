@@ -3,7 +3,6 @@
  */
 
 // External imports.
-import { Fragment } from "react"
 import toast, { Toast as ToastType } from "react-hot-toast"
 import { Transition } from "@headlessui/react"
 import {
@@ -26,7 +25,6 @@ export function Toast({ toast: t, variant, title, body }: ToastProps) {
     <Transition
       show={t.visible}
       appear={true}
-      as={Fragment}
       enter="transform ease-out duration-300 transition"
       enterFrom="-translate-y-2 opacity-0"
       enterTo="translate-y-0 opacity-100"
