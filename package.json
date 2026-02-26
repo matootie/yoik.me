@@ -2,6 +2,7 @@
   "name": "yoikme",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "bun@1.3.8",
   "workspaces": [
     "packages/*",
     "services/*"
@@ -10,7 +11,7 @@
     "*": "prettier --write --ignore-unknown --config config/.prettierrc.json"
   },
   "scripts": {
-    "client": "yarn workspace @yme/client",
+    "client": "bun run --filter @yme/client",
     "develop": "turbo run develop --no-cache --parallel --continue"
   },
   "devDependencies": {

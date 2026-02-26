@@ -4,4 +4,4 @@ set -e
 
 . "$(dirname "$0")/_/husky.sh"
 
-yarn exec --offline -- lint-staged
+bunx lint-staged
