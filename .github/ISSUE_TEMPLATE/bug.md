@@ -1,0 +1,40 @@
+---
+name: Bug report
+about: Report a bug or something that isn't working
+title: ""
+labels: bug
+assignees: ""
+---
+
+### Describe the bug
+
+<!--
+
+A clear and concise description of what the bug is.
+
+-->
+
+### Steps to reproduce
+
+<!--
+
+Outline steps to reproduce the behaviour.
+
+-->
+
+### Expected behaviour
+
+<!--
+
+Describe what you expected to happen.
+
+-->
+
+### Additional context
+
+<!--
+
+Add any other context, screenshots, or screen recordings that help illustrate
+the problem. If unnecessary, write N/A or remove this section.
+
+-->
