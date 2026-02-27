@@ -12,8 +12,9 @@
     "hono": "^4.7.10"
   },
   "devDependencies": {
-    "@yme/tsconfig": "workspace:*",
     "@types/bun": "^1.2.21",
+    "@yme/tsconfig": "workspace:*",
+    "firebase-functions": "^7.0.6",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }

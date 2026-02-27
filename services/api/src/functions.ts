@@ -1,0 +1,52 @@
+/**
+ * Cloud Functions v2 entrypoint.
+ *
+ * Wraps the Hono app for deployment as a Firebase Cloud Function.
+ * This file is bundled by esbuild into functions/lib/index.js.
+ */
+
+import { onRequest } from "firebase-functions/v2/https"
+import app from "./app"
+
+export const api = onRequest(
+  {
+    region: "us-east1",
+    // Set to 1 for minimal cold starts in production; 0 for dev/cost savings.
+    minInstances: 0,
+  },
+  async (req, res) => {
+    // Convert Node.js IncomingMessage to a Web Request.
+    const url = `https://${req.headers.host}${req.url}`
+    const headers = new Headers()
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value)
+        headers.set(key, Array.isArray(value) ? value.join(", ") : value)
+    }
+
+    const body =
+      req.method !== "GET" && req.method !== "HEAD"
+        ? await new Promise<Buffer>((resolve) => {
+            const chunks: Buffer[] = []
+            req.on("data", (chunk: Buffer) => chunks.push(chunk))
+            req.on("end", () => resolve(Buffer.concat(chunks)))
+          })
+        : undefined
+
+    const webRequest = new Request(url, {
+      method: req.method,
+      headers,
+      body,
+    })
+
+    // Run through Hono.
+    const webResponse = await app.fetch(webRequest)
+
+    // Write the Web Response back to the Node.js response.
+    res.status(webResponse.status)
+    webResponse.headers.forEach((value, key) => {
+      res.setHeader(key, value)
+    })
+    const responseBody = await webResponse.arrayBuffer()
+    res.end(Buffer.from(responseBody))
+  }
+)
