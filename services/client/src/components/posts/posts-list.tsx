@@ -3,7 +3,7 @@
  */
 
 // External imports.
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 
 // Component imports.
 import { LoadingSpinner } from "#components/loading-spinner"
@@ -42,6 +42,16 @@ export function PostsList({ className = "" }: PostListProps) {
       fetchNextPage()
     }
   }
+
+  // If items fit within the viewport, no scroll event fires.
+  // Check after data loads and fetch next page if needed.
+  useEffect(() => {
+    const ref = scrollBoxRef.current
+    if (!ref || isLoading || isFetchingNextPage || !hasNextPage) return
+    if (ref.scrollHeight <= ref.clientHeight) {
+      fetchNextPage()
+    }
+  }, [data, isLoading, isFetchingNextPage, hasNextPage])
 
   // Return JSX.
   return (
