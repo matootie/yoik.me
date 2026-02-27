@@ -13,6 +13,17 @@ import { comments } from "./routes/comments"
 
 const app = new Hono()
 
+// Global error handler — catch unhandled exceptions and return structured JSON
+// instead of a raw 500. This prevents Hono's default HTML error page from
+// leaking to API consumers and ensures clients always get valid JSON.
+app.onError((err, c) => {
+  if (err instanceof SyntaxError && err.message.includes("JSON")) {
+    return c.json({ error: "Invalid or missing JSON body" }, 400)
+  }
+  console.error("Unhandled error:", err)
+  return c.json({ error: "Internal server error" }, 500)
+})
+
 // Middleware.
 app.use("*", logger())
 app.use("*", cors())
