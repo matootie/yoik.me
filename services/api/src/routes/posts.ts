@@ -17,7 +17,8 @@ function docToPost(id: string, data: FirebaseFirestore.DocumentData): Post {
   return {
     postId: id,
     body: data.body,
-    published: data.published?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+    published:
+      data.published?.toDate?.()?.toISOString() ?? new Date().toISOString(),
     author: {
       uid: data.author,
       color: getColor(data.author),
@@ -68,7 +69,8 @@ posts.get("/", async (c) => {
     items.push(docToPost(doc.id, doc.data()))
   })
 
-  const lastItem = items.length < limitParam ? undefined : items[items.length - 1]?.postId
+  const lastItem =
+    items.length < limitParam ? undefined : items[items.length - 1]?.postId
   const response: PaginatedResponse<Post> = { items, cursor: lastItem }
   return c.json(response)
 })
