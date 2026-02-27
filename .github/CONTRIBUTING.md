@@ -10,25 +10,25 @@ ready for a code change, create a branch and submit a pull request.
 
 Every pull request must be labeled with the service or package it impacts:
 
-| Label | Description |
-| --- | --- |
-| `client` | Changes to the client service |
-| `tsconfig` | Changes to the tsconfig package |
-| `config` | Changes to tooling configuration |
-| `ci` | Changes to CI/CD workflows |
+| Label      | Description                      |
+| ---------- | -------------------------------- |
+| `client`   | Changes to the client service    |
+| `tsconfig` | Changes to the tsconfig package  |
+| `config`   | Changes to tooling configuration |
+| `ci`       | Changes to CI/CD workflows       |
 
 Additionally, label the pull request with the type of change:
 
-| Label | Description |
-| --- | --- |
-| `bug` | Something isn't working |
-| `enhancement` | New feature or improvement |
-| `fix` | Patch for a bug |
-| `dependency` | Dependency bump or replacement |
-| `documentation` | Updates to docs |
-| `duplicate` | Duplicate issue or PR |
-| `question` | Questionable issue requiring discussion |
-| `wontfix` | Will not be worked on |
+| Label           | Description                             |
+| --------------- | --------------------------------------- |
+| `bug`           | Something isn't working                 |
+| `enhancement`   | New feature or improvement              |
+| `fix`           | Patch for a bug                         |
+| `dependency`    | Dependency bump or replacement          |
+| `documentation` | Updates to docs                         |
+| `duplicate`     | Duplicate issue or PR                   |
+| `question`      | Questionable issue requiring discussion |
+| `wontfix`       | Will not be worked on                   |
 
 ### Assignees and reviewers
 

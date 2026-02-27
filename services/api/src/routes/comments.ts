@@ -100,9 +100,7 @@ comments.get("/", async (c) => {
   })
 
   const lastItem =
-    items.length < limitParam
-      ? undefined
-      : items[items.length - 1]?.commentId
+    items.length < limitParam ? undefined : items[items.length - 1]?.commentId
   const response: PaginatedResponse<Comment> = { items, cursor: lastItem }
   return c.json(response)
 })
@@ -121,7 +119,11 @@ comments.get("/live", (c) => {
       .onSnapshot((snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
-            const comment = docToComment(postId, change.doc.id, change.doc.data())
+            const comment = docToComment(
+              postId,
+              change.doc.id,
+              change.doc.data()
+            )
             stream.writeSSE({
               event: "new-comment",
               data: JSON.stringify(comment),
