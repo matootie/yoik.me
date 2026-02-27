@@ -17,7 +17,7 @@ import tailwindcss from "@tailwindcss/vite"
  */
 export default defineConfig({
   root: join(__dirname, "./src"),
-  envDir: ".",
+  envDir: __dirname,
   envPrefix: "CLIENT_",
   publicDir: join(__dirname, "./public"),
   clearScreen: false,
