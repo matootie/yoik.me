@@ -23,24 +23,12 @@ export const api = onRequest(
         headers.set(key, Array.isArray(value) ? value.join(", ") : value)
     }
 
+    // Cloud Functions v2 pre-parses the request body, so the raw stream is
+    // already consumed. Use `req.rawBody` (a Buffer provided by the runtime)
+    // instead of reading from the stream, which would hang forever.
     const body =
       req.method !== "GET" && req.method !== "HEAD"
-        ? await new Promise<Uint8Array>((resolve) => {
-            const chunks: Uint8Array[] = []
-            req.on("data", (chunk: Buffer) =>
-              chunks.push(new Uint8Array(chunk))
-            )
-            req.on("end", () => {
-              const total = chunks.reduce((n, c) => n + c.length, 0)
-              const merged = new Uint8Array(total)
-              let offset = 0
-              for (const c of chunks) {
-                merged.set(c, offset)
-                offset += c.length
-              }
-              resolve(merged)
-            })
-          })
+        ? (req as any).rawBody || undefined
         : undefined
 
     const webRequest = new Request(url, {
