@@ -6,10 +6,11 @@ on:
     types: [opened, synchronize, reopened, closed]
 
 jobs:
-  # Deploy to a Firebase preview channel and run the e2e suite against it.
-  # Skipped when the PR is being closed (handled by the cleanup job below).
+  # Run e2e tests against Firebase emulators (functions + firestore + hosting).
+  # The hosting emulator applies the same rewrite rules as production, so the
+  # test suite hits identical URL paths without touching real infrastructure.
   e2e:
-    name: Deploy & Run E2E Tests
+    name: Run E2E Tests
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
@@ -49,36 +50,36 @@ jobs:
           rm -rf $GITHUB_WORKSPACE/functions/node_modules
           cp -r node_modules $GITHUB_WORKSPACE/functions/node_modules
 
+      - name: Start Firebase emulators
+        run: |
+          bunx firebase-tools emulators:start \
+            --only functions,firestore,hosting \
+            --project yoikme &
+          # Wait for the hosting emulator to accept connections.
+          timeout 120 bash -c \
+            'until curl -sf http://127.0.0.1:5000 > /dev/null 2>&1; do sleep 2; done'
+          echo "Emulators ready"
+
+      - name: Run E2E tests
+        run: cd services/e2e && bunx vitest run
+        env:
+          E2E_BASE_URL: http://127.0.0.1:5000
+
+      # --- Preview deploy (visual review only, not used by e2e tests) ---
+
       - name: Authenticate to Google Cloud
+        if: ${{ !cancelled() }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      # Functions are deployed globally (shared across all preview channels).
-      - name: Deploy Cloud Functions
-        run: bunx firebase-tools deploy --only functions --project yoikme
-
-      # Hosting is deployed to an ephemeral preview channel scoped to this PR.
-      # The --json flag makes firebase-tools emit structured output so we can
-      # reliably extract the preview URL regardless of log noise.
       - name: Deploy Hosting to preview channel
-        id: deploy-hosting
+        if: ${{ !cancelled() }}
         run: |
-          DEPLOY_OUTPUT=$(bunx firebase-tools hosting:channel:deploy \
+          bunx firebase-tools hosting:channel:deploy \
             pr-${{ github.event.pull_request.number }} \
             --expires 3d \
-            --project yoikme \
-            --json)
-          echo "$DEPLOY_OUTPUT"
-          PREVIEW_URL=$(echo "$DEPLOY_OUTPUT" | jq -r '.result.yoikme.url')
-          echo "url=$PREVIEW_URL" >> $GITHUB_OUTPUT
-
-      # E2E_BASE_URL is the preview channel root; tests append paths like
-      # /api/posts which are rewritten by Hosting to the Cloud Function.
-      - name: Run E2E tests
-        run: cd services/e2e && bunx vitest run
-        env:
-          E2E_BASE_URL: ${{ steps.deploy-hosting.outputs.url }}
+            --project yoikme
 
   # Delete the preview channel when the PR is closed (merged or abandoned).
   cleanup:

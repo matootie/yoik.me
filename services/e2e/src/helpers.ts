@@ -2,7 +2,13 @@
  * Shared helpers for e2e tests.
  */
 
-/** Base URL for the API under test. Defaults to local dev server. */
+/**
+ * Base URL for the API under test.
+ *
+ * - CI:         http://127.0.0.1:5000  (Firebase hosting emulator)
+ * - Local dev:  http://localhost:3001   (Bun dev server, default)
+ * - Production: https://yoikme.web.app  (set via E2E_BASE_URL)
+ */
 export const BASE_URL = (
   process.env.E2E_BASE_URL || "http://localhost:3001"
 ).replace(/\/$/, "")
