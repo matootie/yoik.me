@@ -62,8 +62,16 @@ jobs:
       - name: Bundle Cloud Functions
         run: cd functions && node build.mjs
 
-      - name: Install functions dependencies
-        run: cd functions && npm install --production
+      - name: Install functions production dependencies
+        run: |
+          # Copy functions dir outside the monorepo so npm doesn't
+          # walk up and encounter workspace:* protocol references.
+          cp -r functions /tmp/functions-stage
+          cd /tmp/functions-stage
+          npm install --omit=dev
+          # Copy the resolved node_modules back
+          rm -rf $GITHUB_WORKSPACE/functions/node_modules
+          cp -r node_modules $GITHUB_WORKSPACE/functions/node_modules
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
