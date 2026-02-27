@@ -3,6 +3,7 @@
   "tasks": {
     "develop": {
       "cache": false
-    }
+    },
+    "test": {}
   }
 }
