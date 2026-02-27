@@ -79,4 +79,5 @@ jobs:
         run: cd services/e2e && bunx vitest run
         env:
           E2E_BASE_URL: http://127.0.0.1:5000
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
           E2E_AUTH_TOKEN: ${{ steps.auth-token.outputs.token }}
