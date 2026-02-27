@@ -15,7 +15,9 @@
     "client": "bun run --filter @yme/client",
     "develop": "turbo run develop --no-cache --parallel --continue",
     "api": "bun run --filter @yme/api",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "test:e2e": "bun run --filter @yme/e2e test:e2e",
+    "test:e2e:production": "bun run --filter @yme/e2e test:e2e:production"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

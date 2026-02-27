@@ -26,15 +26,23 @@ export const api = onRequest(
     // Cloud Functions v2 pre-parses the request body, so the raw stream is
     // already consumed. Use `req.rawBody` (a Buffer provided by the runtime)
     // instead of reading from the stream, which would hang forever.
-    const body =
+    // Note: Buffer.buffer returns the full underlying ArrayBuffer (pool-
+    // allocated), so we must slice to the correct region.
+    const rawBody =
       req.method !== "GET" && req.method !== "HEAD"
-        ? (req as any).rawBody || undefined
+        ? ((req as any).rawBody as Buffer | undefined)
         : undefined
 
     const webRequest = new Request(url, {
       method: req.method,
       headers,
-      body: body ? (body.buffer as ArrayBuffer) : undefined,
+      body:
+        rawBody && rawBody.byteLength > 0
+          ? (rawBody.buffer.slice(
+              rawBody.byteOffset,
+              rawBody.byteOffset + rawBody.byteLength
+            ) as ArrayBuffer)
+          : undefined,
     })
 
     // Run through Hono.
