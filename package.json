@@ -12,7 +12,8 @@
   },
   "scripts": {
     "client": "bun run --filter @yme/client",
-    "develop": "turbo run develop --no-cache --parallel --continue"
+    "develop": "turbo run develop --no-cache --parallel --continue",
+    "api": "bun run --filter @yme/api"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",

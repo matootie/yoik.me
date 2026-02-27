@@ -1,0 +1,17 @@
+{
+  "name": "@yme/api",
+  "version": "0.0.0",
+  "scripts": {
+    "develop": "bun run --hot src/index.ts"
+  },
+  "dependencies": {
+    "@yme/types": "workspace:*",
+    "firebase-admin": "^13.4.0",
+    "hono": "^4.7.10"
+  },
+  "devDependencies": {
+    "@yme/tsconfig": "workspace:*",
+    "@types/bun": "^1.2.21",
+    "typescript": "^5.9.3"
+  }
+}
