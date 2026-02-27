@@ -11,7 +11,7 @@ import { PostsList } from "#components/posts"
  */
 export function HomePage() {
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-dvh flex flex-col">
       <Header
         title="Posts"
         withPostButton
