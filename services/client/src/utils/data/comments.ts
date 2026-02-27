@@ -1,26 +1,25 @@
 /**
- * Comment providers.
+ * Comment data providers — API-backed.
  */
 
-// Local imports.
-import {
-  getFirestore,
-  getDocs,
-  getDoc,
-  addDoc,
-  query,
-  doc,
-  collection,
-  orderBy,
-  limit,
-  startAfter,
-  serverTimestamp,
-  Unsubscribe,
-  where,
-  Timestamp,
-  onSnapshot,
-} from "#utils/firebase"
-import { getColor, getName } from "#utils/id"
+import { apiFetch, apiEventSource } from "#utils/api"
+import type { Comment, PaginatedResponse } from "@yme/types"
+
+/** Convert API Comment (ISO string dates) to client Comment (Date objects). */
+export interface ClientComment {
+  commentId: string
+  postId: string
+  body: string
+  published: Date
+  author: { uid: string; color: string; username: string }
+}
+
+function toClientComment(comment: Comment): ClientComment {
+  return {
+    ...comment,
+    published: new Date(comment.published),
+  }
+}
 
 /**
  * Create a comment on a post.
@@ -36,15 +35,13 @@ export interface CreateCommentOutput {
 export async function createComment({
   postId,
   body,
-  author,
 }: CreateCommentInput): Promise<CreateCommentOutput> {
-  const db = getFirestore()
-  const { id } = await addDoc(collection(db, "posts", postId, "comments"), {
-    body,
-    published: serverTimestamp(),
-    author,
+  const res = await apiFetch(`/api/posts/${postId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body }),
   })
-  return { commentId: id }
+  if (!res.ok) throw new Error("Failed to create comment")
+  return res.json()
 }
 
 /**
@@ -55,17 +52,7 @@ export interface ListCommentsInput {
   limit?: number
   cursor?: string
 }
-export interface ListCommentsComment {
-  commentId: string
-  postId: string
-  body: string
-  published: Date
-  author: {
-    uid: string
-    color: string
-    username: string
-  }
-}
+export type ListCommentsComment = ClientComment
 export interface ListCommentsOutput {
   items: ListCommentsComment[]
   cursor?: string
@@ -75,98 +62,40 @@ export async function listComments({
   limit: l = 10,
   cursor,
 }: ListCommentsInput): Promise<ListCommentsOutput> {
-  // Clamp the limit.
-  const lim = l > 10 ? 10 : l
-  // Get the data.
-  const db = getFirestore()
-  const q = cursor
-    ? query(
-        collection(db, "posts", postId, "comments"),
-        where("published", "<", Timestamp.now()),
-        orderBy("published", "desc"),
-        limit(lim),
-        startAfter(await getDoc(doc(db, "posts", postId, "comments", cursor)))
-      )
-    : query(
-        collection(db, "posts", postId, "comments"),
-        where("published", "<", Timestamp.now()),
-        orderBy("published", "desc"),
-        limit(lim)
-      )
-  const qs = await getDocs(q)
-  // Parse the response.
-  const items: ListCommentsComment[] = []
-  qs.forEach((item) => {
-    const data = item.data()
-    items.push({
-      postId,
-      commentId: item.id,
-      body: data.body,
-      published: data.published.toDate(),
-      author: {
-        uid: data.author,
-        color: getColor(data.author),
-        username: getName(data.author),
-      },
-    })
-  })
-  // Return the data.
-  const lastItem =
-    items.length < lim ? undefined : items[items.length - 1].commentId
+  const params = new URLSearchParams({ limit: String(l) })
+  if (cursor) params.set("cursor", cursor)
+  const res = await apiFetch(`/api/posts/${postId}/comments?${params}`)
+  if (!res.ok) throw new Error("Failed to list comments")
+  const data: PaginatedResponse<Comment> = await res.json()
   return {
-    items,
-    cursor: lastItem,
+    items: data.items.map(toClientComment),
+    cursor: data.cursor,
   }
 }
 
-export interface ListenCommentsComment {
-  commentId: string
-  postId: string
-  body: string
-  published: Date
-  author: {
-    uid: string
-    color: string
-    username: string
-  }
-}
+/**
+ * Listen for new comments via SSE.
+ */
+export type ListenCommentsComment = ClientComment
 export interface ListenCommentsInput {
   postId: string
   onData: (data: ListenCommentsComment[]) => void
 }
 export interface ListenCommentsOutput {
-  unsubscribe: Unsubscribe
+  unsubscribe: () => void
 }
 export function listenComments({
   postId,
   onData,
 }: ListenCommentsInput): ListenCommentsOutput {
-  const db = getFirestore()
-  const q = query(
-    collection(db, "posts", postId, "comments"),
-    where("published", ">=", Timestamp.now()),
-    orderBy("published", "desc")
-  )
-  const unsubscribe = onSnapshot(q, (qs) => {
-    // Parse the new data.
-    const items: ListenCommentsComment[] = []
-    qs.forEach((item) => {
-      const data = item.data()
-      items.push({
-        postId,
-        commentId: item.id,
-        body: data.body,
-        published: data.published.toDate(),
-        author: {
-          uid: data.author,
-          color: getColor(data.author),
-          username: getName(data.author),
-        },
-      })
-    })
-    // Run the callback function with new data.
-    onData(items)
+  const es = apiEventSource(`/api/posts/${postId}/comments/live`)
+
+  es.addEventListener("new-comment", (event) => {
+    const comment: Comment = JSON.parse(event.data)
+    onData([toClientComment(comment)])
   })
-  // Return the unsubscribe function.
-  return { unsubscribe }
+
+  return {
+    unsubscribe: () => es.close(),
+  }
 }

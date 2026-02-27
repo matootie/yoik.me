@@ -1,26 +1,25 @@
 /**
- * Post providers.
+ * Post data providers — API-backed.
  */
 
-// Local imports.
-import {
-  getFirestore,
-  getDocs,
-  getDoc,
-  addDoc,
-  query,
-  doc,
-  collection,
-  orderBy,
-  limit,
-  startAfter,
-  serverTimestamp,
-  where,
-  Unsubscribe,
-  onSnapshot,
-  Timestamp,
-} from "#utils/firebase"
+import { apiFetch, apiEventSource } from "#utils/api"
+import type { Post, PaginatedResponse } from "@yme/types"
 import { getColor, getName } from "#utils/id"
+
+/** Convert API Post (ISO string dates) to client Post (Date objects). */
+export interface ClientPost {
+  postId: string
+  body: string
+  published: Date
+  author: { uid: string; color: string; username: string }
+}
+
+function toClientPost(post: Post): ClientPost {
+  return {
+    ...post,
+    published: new Date(post.published),
+  }
+}
 
 /**
  * Create a post.
@@ -34,15 +33,13 @@ export interface CreatePostOutput {
 }
 export async function createPost({
   body,
-  author,
 }: CreatePostInput): Promise<CreatePostOutput> {
-  const db = getFirestore()
-  const { id } = await addDoc(collection(db, "posts"), {
-    body,
-    published: serverTimestamp(),
-    author,
+  const res = await apiFetch("/api/posts", {
+    method: "POST",
+    body: JSON.stringify({ body }),
   })
-  return { postId: id }
+  if (!res.ok) throw new Error("Failed to create post")
+  return res.json()
 }
 
 /**
@@ -51,40 +48,17 @@ export async function createPost({
 export interface GetPostInput {
   postId: string
 }
-export interface GetPostPost {
-  postId: string
-  body: string
-  published: Date
-  author: {
-    uid: string
-    color: string
-    username: string
-  }
-}
+export type GetPostPost = ClientPost
 export interface GetPostOutput {
   item?: GetPostPost
 }
 export async function getPost({
   postId,
 }: GetPostInput): Promise<GetPostOutput> {
-  const db = getFirestore()
-  const x = await getDoc(doc(db, "posts", postId))
-  const data = x.data()
-  if (!data) {
-    return {}
-  }
-  return {
-    item: {
-      postId,
-      body: data.body,
-      published: data.published.toDate(),
-      author: {
-        uid: data.author,
-        color: getColor(data.author),
-        username: getName(data.author),
-      },
-    },
-  }
+  const res = await apiFetch(`/api/posts/${postId}`)
+  if (!res.ok) return {}
+  const post: Post = await res.json()
+  return { item: toClientPost(post) }
 }
 
 /**
@@ -94,16 +68,7 @@ export interface ListPostsInput {
   limit?: number
   cursor?: string
 }
-export interface ListPostsPost {
-  postId: string
-  body: string
-  published: Date
-  author: {
-    uid: string
-    color: string
-    username: string
-  }
-}
+export type ListPostsPost = ClientPost
 export interface ListPostsOutput {
   items: ListPostsPost[]
   cursor?: string
@@ -112,114 +77,42 @@ export async function listPosts({
   limit: l = 10,
   cursor,
 }: ListPostsInput | undefined = {}): Promise<ListPostsOutput> {
-  // Clamp the limit.
-  const lim = l > 10 ? 10 : l
-  // Get the data.
-  const db = getFirestore()
-  const q = cursor
-    ? query(
-        collection(db, "posts"),
-        where("published", "<", Timestamp.now()),
-        orderBy("published", "desc"),
-        limit(lim),
-        startAfter(await getDoc(doc(db, "posts", cursor)))
-      )
-    : query(
-        collection(db, "posts"),
-        where("published", "<", Timestamp.now()),
-        orderBy("published", "desc"),
-        limit(lim)
-      )
-  const qs = await getDocs(q)
-  // Parse the response.
-  const items: ListPostsPost[] = []
-  qs.forEach((item) => {
-    const data = item.data()
-    items.push({
-      postId: item.id,
-      body: data.body,
-      published: data.published.toDate(),
-      author: {
-        uid: data.author,
-        color: getColor(data.author),
-        username: getName(data.author),
-      },
-    })
-  })
-  // Return the data.
-  const lastItem =
-    items.length < lim ? undefined : items[items.length - 1].postId
+  const params = new URLSearchParams({ limit: String(l) })
+  if (cursor) params.set("cursor", cursor)
+  const res = await apiFetch(`/api/posts?${params}`)
+  if (!res.ok) throw new Error("Failed to list posts")
+  const data: PaginatedResponse<Post> = await res.json()
   return {
-    items,
-    cursor: lastItem,
+    items: data.items.map(toClientPost),
+    cursor: data.cursor,
   }
 }
 
-export interface ListenPostsPost {
-  postId: string
-  body: string
-  published: Date
-  author: {
-    uid: string
-    color: string
-    username: string
-  }
-}
+/**
+ * Listen for new posts via SSE.
+ */
+export type ListenPostsPost = ClientPost
 export interface ListenPostsInput {
   onData?: (data: ListenPostsPost[]) => void
   onNewData?: (data: ListenPostsPost) => void
 }
 export interface ListenPostsOutput {
-  unsubscribe: Unsubscribe
+  unsubscribe: () => void
 }
 export function listenPosts({
   onData,
   onNewData,
 }: ListenPostsInput): ListenPostsOutput {
-  const db = getFirestore()
-  const q = query(
-    collection(db, "posts"),
-    where("published", ">=", Timestamp.now()),
-    orderBy("published", "desc")
-  )
-  const unsubscribe = onSnapshot(q, (qs) => {
-    if (onNewData !== undefined) {
-      qs.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data()
-          const item = {
-            postId: change.doc.id,
-            body: data.body,
-            published: data.published.toDate(),
-            author: {
-              uid: data.author,
-              color: getColor(data.author),
-              username: getName(data.author),
-            },
-          }
-          onNewData(item)
-        }
-      })
-    }
-    if (onData !== undefined) {
-      const items: ListenPostsPost[] = []
-      qs.forEach((item) => {
-        const data = item.data()
-        items.push({
-          postId: item.id,
-          body: data.body,
-          published: data.published.toDate(),
-          author: {
-            uid: data.author,
-            color: getColor(data.author),
-            username: getName(data.author),
-          },
-        })
-      })
-      // Run the callback function with new data.
-      onData(items)
-    }
+  const es = apiEventSource("/api/posts/live")
+
+  es.addEventListener("new-post", (event) => {
+    const post: Post = JSON.parse(event.data)
+    const clientPost = toClientPost(post)
+    if (onNewData) onNewData(clientPost)
+    if (onData) onData([clientPost])
   })
-  // Return the unsubscribe function.
-  return { unsubscribe }
+
+  return {
+    unsubscribe: () => es.close(),
+  }
 }

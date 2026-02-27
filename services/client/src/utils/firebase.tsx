@@ -1,14 +1,11 @@
 /**
- * Firebase utilities.
+ * Firebase utilities — auth only.
+ * Firestore access is now handled by the API service.
  */
 
 // External imports.
 import { initializeApp } from "firebase/app"
 import { getAuth as getFirebaseAuth, Auth } from "firebase/auth"
-import {
-  getFirestore as getFirebaseFirestore,
-  Firestore,
-} from "firebase/firestore"
 
 // Initialize the Firebase SDK.
 const app = initializeApp({
@@ -28,13 +25,6 @@ export function getAuth(): Auth {
 }
 
 /**
- * Get the Firestore instance.
- */
-export function getFirestore(): Firestore {
-  return getFirebaseFirestore(app)
-}
-
-/**
  * Re-exports from the Firebase SDK.
  */
 export type { User as FirebaseUser } from "firebase/auth"
@@ -46,21 +36,3 @@ export {
   browserSessionPersistence,
   browserLocalPersistence,
 } from "firebase/auth"
-export type { Unsubscribe } from "firebase/firestore"
-export {
-  getDocs,
-  getDoc,
-  setDoc,
-  addDoc,
-  query,
-  doc,
-  collection,
-  orderBy,
-  limit,
-  where,
-  startAfter,
-  startAt,
-  serverTimestamp,
-  onSnapshot,
-  Timestamp,
-} from "firebase/firestore"
