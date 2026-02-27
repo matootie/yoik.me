@@ -31,9 +31,9 @@ bun run test:e2e:production
 
 ## Configuration
 
-| Variable       | Description                       | Default                 |
-| -------------- | --------------------------------- | ----------------------- |
-| `E2E_BASE_URL` | API base URL to test against      | `http://localhost:3001` |
+| Variable       | Description                  | Default                 |
+| -------------- | ---------------------------- | ----------------------- |
+| `E2E_BASE_URL` | API base URL to test against | `http://localhost:3001` |
 
 ### Firebase emulator ports (configured in `firebase.json`)
 
