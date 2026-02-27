@@ -83,6 +83,15 @@
         "vitest": "^3.2.4",
       },
     },
+    "services/e2e": {
+      "name": "@yme/e2e",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@yme/tsconfig": "workspace:*",
+        "typescript": "^5.9.3",
+        "vitest": "^3.2.4",
+      },
+    },
   },
   "packages": {
     "@adobe/css-tools": ["@adobe/css-tools@4.4.4", "", {}, "sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg=="],
@@ -556,6 +565,8 @@
     "@yme/api": ["@yme/api@workspace:services/api"],
 
     "@yme/client": ["@yme/client@workspace:services/client"],
+
+    "@yme/e2e": ["@yme/e2e@workspace:services/e2e"],
 
     "@yme/functions": ["@yme/functions@workspace:functions"],
 

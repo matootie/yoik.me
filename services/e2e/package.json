@@ -1,0 +1,15 @@
+{
+  "name": "@yme/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:production": "E2E_BASE_URL=https://yoikme.web.app vitest run"
+  },
+  "devDependencies": {
+    "@yme/tsconfig": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
