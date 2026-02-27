@@ -38,10 +38,10 @@ export const api = onRequest(
       headers,
       body:
         rawBody && rawBody.byteLength > 0
-          ? rawBody.buffer.slice(
+          ? (rawBody.buffer.slice(
               rawBody.byteOffset,
               rawBody.byteOffset + rawBody.byteLength
-            )
+            ) as ArrayBuffer)
           : undefined,
     })
 
