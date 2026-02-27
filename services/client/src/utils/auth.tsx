@@ -185,7 +185,7 @@ function useProvideAuth(): AuthState {
     setError(undefined)
     const auth = getAuth()
     try {
-      setPersistence(auth, browserLocalPersistence)
+      await setPersistence(auth, browserLocalPersistence)
       const { user } = await signInAnonymously(auth)
       setUser({
         ...user,
