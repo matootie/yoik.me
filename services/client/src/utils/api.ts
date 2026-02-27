@@ -1,10 +1,39 @@
 /**
  * API client utilities.
+ *
+ * In production the client is served by Firebase Hosting, which rewrites
+ * `/api/**` requests to the Cloud Function.  An empty API_BASE (the default
+ * for production builds) produces relative URLs that go through the rewrite
+ * automatically.
+ *
+ * In development the local Bun dev server runs on port 3001, so the fallback
+ * points there unless overridden via a `CLIENT_API_URL` env var.
+ *
+ * Note: Vite is configured with `envPrefix: "CLIENT_"`, so only env vars
+ * starting with `CLIENT_` are exposed to client code via `import.meta.env`.
  */
 
 import { getAuth } from "#utils/firebase"
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001"
+/**
+ * Resolve the API base URL from the environment.
+ *
+ * Priority:
+ * 1. Explicit `CLIENT_API_URL` env var (allows overrides for staging, etc.)
+ * 2. Production builds → empty string (relative URLs; Firebase Hosting
+ *    rewrites `/api/**` to the Cloud Function)
+ * 3. Development → `http://localhost:3001` (local Bun dev server)
+ *
+ * Uses nullish coalescing (`??`) so an explicit empty string is respected.
+ */
+export function resolveApiBase(env: {
+  CLIENT_API_URL?: string
+  PROD?: boolean
+}): string {
+  return env.CLIENT_API_URL ?? (env.PROD ? "" : "http://localhost:3001")
+}
+
+const API_BASE = resolveApiBase(import.meta.env)
 
 /**
  * Get the current user's ID token for API authentication.
