@@ -27,7 +27,9 @@ export const api = onRequest(
       req.method !== "GET" && req.method !== "HEAD"
         ? await new Promise<Uint8Array>((resolve) => {
             const chunks: Uint8Array[] = []
-            req.on("data", (chunk: Buffer) => chunks.push(new Uint8Array(chunk)))
+            req.on("data", (chunk: Buffer) =>
+              chunks.push(new Uint8Array(chunk))
+            )
             req.on("end", () => {
               const total = chunks.reduce((n, c) => n + c.length, 0)
               const merged = new Uint8Array(total)
@@ -44,7 +46,7 @@ export const api = onRequest(
     const webRequest = new Request(url, {
       method: req.method,
       headers,
-      body: body ? body.buffer as ArrayBuffer : undefined,
+      body: body ? (body.buffer as ArrayBuffer) : undefined,
     })
 
     // Run through Hono.
